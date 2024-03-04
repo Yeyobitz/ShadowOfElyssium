@@ -13,7 +13,7 @@ standing = True
 name = ""
 health = 50
 max_health = health
-attack = 5
+attack = 9999
 defense = 3
 gold = 0
 level = 1
@@ -23,6 +23,7 @@ y = 1
 potions = 1
 inventory = []
 equipment = []
+experience_needed = 1
 
 
 # Mapa
@@ -38,7 +39,6 @@ map = [
     ["forest",   "evilWood", "swamp",   "swamp",   "evilWood", "forest",   "plains", "ruined city", "plains",     "plains"],       # y=7
     ["mountains","forest",   "swamp",   "evilTown","evilWood", "EldRuins", "forest", "ruined city", "plains",     "plains"],       # y=8
     ["mountains","mountains","swamp",   "swamp",   "evilWood", "evilWood", "forest", "mountains",   "mountains",  "plains"]        # y=9
-
 ]
 
 y_len = len(map)-1
@@ -94,6 +94,8 @@ name_of_tile = biom[current_tile]["t"]
 ememy_tile = biom[current_tile]["e"]
 
 # Enemigos
+enemy = ""
+
 e_list = [
     "Sujeto claramente transtornado",  # Aldeanos que han perdido la razón debido a la influencia eldritch.
     "Bestia poseída",  # Criaturas del bosque corrompidas por la energía oscura.
@@ -118,6 +120,7 @@ e_list = [
     "Jefe Final: El Heredero de los Antiguos",  # La encarnación de la voluntad de los Antiguos, un enemigo casi divino.
     "ninguno"  # No hay enemigo
 ]
+
 mobs = {
     "Sujeto claramente transtornado": {
         "health": 30,
@@ -271,7 +274,7 @@ mobs = {
 
 # Pesos de los biomas para determinar la probabilidad de encontrar un enemigo
 #                       Sujet-Besti-Espec-Culti-Gargo-Horro-Pesad-Sombra-Culti-Acol-Medium-Palad-Guard-Cazad-Abomi-Avata-Devor-Titan-Engen-Emisa-Jefe-Nada
-plains_weight =         [0.15, 0.10, 0.05, 0.10, 0.00, 0.00, 0.00, 0.05, 0.05, 0.10, 0.05, 0.05, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.30]
+plains_weight =         [0.15, 0.10, 0.00, 0.10, 0.00, 0.00, 0.00, 0.05, 0.05, 0.10, 0.05, 0.05, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.30]
 forest_weight =         [0.10, 0.15, 0.10, 0.05, 0.00, 0.00, 0.05, 0.00, 0.05, 0.05, 0.05, 0.00, 0.00, 0.05, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.40]
 dark_forest_weight =    [0.05, 0.10, 0.15, 0.10, 0.00, 0.05, 0.10, 0.05, 0.05, 0.00, 0.05, 0.00, 0.05, 0.05, 0.00, 0.00, 0.00, 0.00, 0.00, 0.05, 0.00, 0.25]
 swamp_weight =          [0.05, 0.10, 0.05, 0.05, 0.00, 0.15, 0.05, 0.05, 0.05, 0.05, 0.05, 0.00, 0.05, 0.10, 0.00, 0.05, 0.05, 0.00, 0.00, 0.00, 0.00, 0.30]
@@ -282,6 +285,7 @@ village_weight =        [0.20, 0.10, 0.05, 0.10, 0.00, 0.00, 0.00, 0.05, 0.10, 0
 cursed_village_weight = [0.05, 0.05, 0.10, 0.20, 0.00, 0.00, 0.10, 0.10, 0.20, 0.00, 0.05, 0.00, 0.00, 0.00, 0.05, 0.05, 0.00, 0.00, 0.00, 0.00, 0.00, 0.20]
 eldritch_ruins_weight = [0.00, 0.00, 0.05, 0.20, 0.15, 0.10, 0.05, 0.05, 0.10, 0.00, 0.05, 0.00, 0.00, 0.05, 0.10, 0.05, 0.05, 0.00, 0.05, 0.10, 0.05, 0.15]
 
+#################################################################
 ######################## Lore del juego #########################
 #################################################################
 
@@ -298,17 +302,15 @@ Antagonistas: Los Antiguos, poderosos y antiguos seres de más allá, y sus segu
 """
 
 # Texto de inicio del juego
-txt_intro = """
-
-Elysium...
+txt_intro = """Elysium...
 
 Aquel reino una vez conocido como "El gran reino de la luz" 
 ahora yace absorto en completa oscuridad.
 
-Entes de otro mundo han corrompido la tierra, distorsionando la
-realidad y la naturaleza. La barrera entre dimensiones se ha
+La barrera entre dimensiones se ha
 debilitado, permitiendo que seres y horrores ininarrables se 
-infriltren en el reino y más allá de él.
+infriltren en este plano. Han corrompido la tierra, 
+distorsionado la realidad, la naturaleza y al mismo ser humano.
 
 Despiertas un día y lo único que sabes es una cosa:
 Debes encontrar la fuente de esta corrupción y detenerla
@@ -350,11 +352,6 @@ txt_placeholder = """Texto de relleno"""
 #################################################################
 
 
-# Batalla
-def battle():
-    print("¡Un enemigo apareció!")
-    pass
-
 # Guardar
 def save():
     list = [name, 
@@ -368,7 +365,8 @@ def save():
             y,
             potions,
             inventory,
-            equipment]
+            equipment,
+            experience_needed]
     
     f = open(f"{name}_save.txt", "w")
     
@@ -378,7 +376,7 @@ def save():
 
 # Cargar
 def load():
-    global menu, play, name, health, attack, defense, gold, level, experience, x, y, potions, inventory, equipment
+    global menu, play, name, health, attack, defense, gold, level, experience, x, y, potions, inventory, equipment, experience_needed
     try:
         name = input("Nombre EXACTO del personaje: ")
         f = open(f"{name}_save.txt", "r")
@@ -394,7 +392,8 @@ def load():
         y = int(lines[8])
         potions = int(lines[9])
         inventory = lines[10]
-        equipment = lines[11]
+        equipment = lines[11],
+        experience_needed = int(lines[12])
         draw_line()
         print("Cargando juego...")
         time.sleep(2)
@@ -409,7 +408,7 @@ def load():
         print(f"Defensa: {defense}")
         print(f"Oro: {gold}")
         print(f"Nivel: {level}")
-        print(f"Experiencia: {experience}")
+        print(f"EXP: {experience}/{experience_needed}")        
         draw_line()
         time.sleep(1)
         print("Presiona enter para continuar...")
@@ -429,9 +428,11 @@ def load():
 # Limpiar
 def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
+
 # Dibujar línea
 def draw_line():
-    print("<+><+><+><+><+><+><+><+><+><+><+>")
+    print("XXx<+><+><+><+><+><+><+><+><+><+><+><+><+><+><+><+>xXX")
+
 # función para hacer que las palabras se escriban letra por letra rapidamente en pantalla
 def type_text(text, delay=0.04):
     for char in text:
@@ -450,6 +451,303 @@ def show_stats():
     print(f"Nivel: {level}")
     print(f"Experiencia: {experience}")
 
+def main_menu():
+    global menu, play, rules, name
+    clear()
+    draw_line()
+    print("1.- Juego Nuevo")
+    print("2.- Cargar Juego")
+    print("3.- Reglas")
+    print("4.- Salir")
+    draw_line()
+    
+    option = input("Ingrese una opción: ")
+    
+    if option == "1":
+        clear()
+        #type_text("Escuchas una voz en lo profundo de tu mente...\n", 0.03)
+        #type_text("-Recuerda tu nombre.", 0.1)
+        name = input("\n-> ")
+        # menu, play y return deben estar al final, por ahora están aquí para pruebas
+        menu = False
+        play = True
+        return
+        clear()
+        type_text(f"Cierto... Me llamo {name}", 0.05)
+        time.sleep(1)
+        type_text("...¿verdad?", 0.1)
+        time.sleep(3)
+        clear()
+        type_text(txt_intro, 0.04)
+        time.sleep(5)
+        clear()
+    elif option == "2":
+        clear()
+        load()
+    elif option == "3":
+        clear()
+        menu = False
+        rules = True
+    elif option == "4":
+        quit()
+        
+# Batalla aleatoria según el bioma
+def random_battle():
+    global standing, play, enemy
+    # Batalla random
+    if not standing:
+        if biom[map[y][x]]["e"]:
+            if current_tile == "plains":
+                enemy = random.choices(e_list, weights=plains_weight, k=1)[0]
+                if enemy == "ninguno":
+                    standing = True
+                    print("Está tranquilo por aquí...")
+                    time.sleep(3)
+                    clear()
+                    play = True
+                else:
+                    print(f"¡Te has encontrado con un {enemy} en las llanuras!")
+                    battle()
+                    standing = True
+            elif current_tile == "forest":
+                enemy = random.choices(e_list, weights=forest_weight, k=1)[0]
+                if enemy == "ninguno":
+                    standing = True
+                    print("El susurro de las hojas llena tu corazón de angustia...")
+                    time.sleep(3)
+                    clear()
+                    play = True
+                else:
+                    print(f"¡Te has encontrado con un {enemy} en el bosque!")
+                    battle()
+                    standing = True
+            elif current_tile == "beach":
+                enemy = random.choices(e_list, weights=beach_weight, k=1)[0]
+                if enemy == "ninguno":
+                    standing = True
+                    print("La calma de las olas solo inquieta tu mente...")
+                    time.sleep(3)
+                    clear()
+                    play = True
+                else:
+                    print(f"¡Te has encontrado con un {enemy} en la playa!")
+                    battle()
+                    standing = True
+            elif current_tile == "mountains":
+                enemy = random.choices(e_list, weights=mountains_weight, k=1)[0]
+                if enemy == "ninguno":
+                    standing = True
+                    print("El viento hiela hasta tus huesos...")
+                    time.sleep(3)
+                    clear()
+                    play = True
+                else:
+                    print(f"¡Te has encontrado con un {enemy} en las montañas!")
+                    battle()
+                    standing = True
+            elif current_tile == "ruined city":
+                enemy = random.choices(e_list, weights=ruined_city_weight, k=1)[0]
+                if enemy == "ninguno":
+                    standing = True
+                    print("El eco de la ciudad en ruinas te hace sentir solo...")
+                    time.sleep(3)
+                    clear()
+                    play = True
+                else:
+                    print(f"¡Te has encontrado con un {enemy} en la ciudad en ruinas!")
+                    battle()
+                    standing = True
+            # en "village" no aparecen enemigos, es un lugar de compra/venta y descanzo
+            elif current_tile == "village":
+                standing = True
+                print("Estás en un pueblo, no hay enemigos aquí...")
+                time.sleep(3)
+                clear()
+                play = True
+            elif current_tile == "cursed village":
+                enemy = random.choices(e_list, weights=cursed_village_weight, k=1)[0]
+                if enemy == "ninguno":
+                    standing = True
+                    print("El aire está cargado con una energía oscura...")
+                    time.sleep(3)
+                    clear()
+                    play = True
+                else:
+                    print(f"¡Te has encontrado con un {enemy} en el pueblo maldito!")
+                    battle()
+                    standing = True
+            elif current_tile == "dark forest":
+                enemy = random.choices(e_list, weights=dark_forest_weight, k=1)[0]
+                if enemy == "ninguno":
+                    standing = True
+                    print("No te puedes quitar la sensación de unos ojos clavados en ti...")
+                    time.sleep(3)
+                    clear()
+                    play = True
+                else:
+                    print(f"¡Te has encontrado con un {enemy} en el bosque oscuro!")
+                    battle()
+                    standing = True
+            elif current_tile == "eldritch ruins":
+                enemy = random.choices(e_list, weights=eldritch_ruins_weight, k=1)[0]
+                if enemy == "ninguno":
+                    standing = True
+                    print("Las ruinas eldritch te hacen sentir pequeño...")
+                    time.sleep(3)
+                    clear()
+                    play = True
+                else:
+                    print(f"¡Te has encontrado con un {enemy} en las ruinas eldritch!")
+                    battle()
+                    standing = True
+            elif current_tile == "swamp":
+                enemy = random.choices(e_list, weights=swamp_weight, k=1)[0]
+                if enemy == "ninguno":
+                    standing = True
+                    print("El pantano te hace sentir atrapado...")
+                    time.sleep(3)
+                    clear()
+                    play = True
+                else:
+                    print(f"¡Te has encontrado con un {enemy} en el pantano!")
+                    battle()
+                    standing = True
+        else:
+            standing = True
+            print("Estás en un lugar seguro...")
+            time.sleep(3)
+            clear()
+            play = True                    
+        
+# Batalla contra el enemy que apareció en random_battle()
+def battle():
+    global name, health, attack, defense, gold, level, experience, potions, play
+    global enemy
+    enemy_health = mobs[enemy]["health"]
+    enemy_max_health = mobs[enemy]["health"]
+    enemy_attack = mobs[enemy]["attack"]
+    enemy_defense = mobs[enemy]["defense"]
+    enemy_gold = mobs[enemy]["gold"]
+    enemy_experience = mobs[enemy]["experience"]
+    while health > 0 and enemy_health > 0:
+        draw_line()
+        print(f"{name}: {health}/{max_health}")
+        print(f"{enemy}: {enemy_health}/{enemy_max_health}")
+        draw_line()
+        print("1.- Atacar")
+        print("2.- Usar poción")
+        print("3.- Huir")
+        draw_line()
+        option = input("-> ")
+        if option == "1":
+            # Ataque del jugador
+            damage = attack - enemy_defense
+            if damage < 0:
+                damage = 0
+            enemy_health -= damage
+            print(f"¡Le has quitado {damage} de salud al {enemy}!")
+            time.sleep(2)
+            if enemy_health <= 0:
+                break
+            # Ataque del enemigo
+            damage = enemy_attack - defense
+            if damage < 0:
+                damage = 0
+            health -= damage
+            print(f"¡El {enemy} te ha quitado {damage} de salud!")
+            time.sleep(2)
+            clear()
+        elif option == "2":
+            if potions > 0:
+                health += 30
+                potions -= 1
+                print("Has usado una poción y recuperado 30 puntos de salud.")
+                time.sleep(2)
+                clear()
+            else:
+                print("No tienes pociones...")
+                time.sleep(2)
+                clear()
+        elif option == "3":
+            probability = random.randint(1, 100)
+            if probability > 50:
+                type_text("N O  E S C A P A R A S\n", 0.05)
+                time.sleep(2)
+                clear()
+            print("Has conseguido huir...")
+            time.sleep(2)
+            clear()
+            play = True
+            break
+        else:
+            print("Opción no válida")
+            time.sleep(1)
+            clear()
+    if health <= 0:
+        print("¡Has muerto!")
+        time.sleep(1)
+        print("Volverás al último punto de guardado...")
+        time.sleep(2)
+        clear()
+        play = False
+        menu = True
+    elif enemy_health <= 0:
+        print(f"¡Has derrotado al {enemy}!")
+        time.sleep(1)
+        print(f"Has ganado {enemy_gold} de oro y {enemy_experience} de experiencia.")
+        gold += enemy_gold
+        experience += enemy_experience
+        if random.random() < 0.3:
+            potions += 1
+            print("El enemigo ha dejado caer una poción.")
+        level_up()
+        time.sleep(2)
+        clear()
+        play = True
+        
+# Función para subir de nivel al alcanzar cierta experiencia y aumentar los stats del jugador dependiendo de lo que él elija
+# tendrá 3 puntos para subir entre +5 de salud, +1 de ataque y +1 de defensa
+def level_up():
+    global health, attack, defense, level, experience, experience_needed
+    if experience >= experience_needed:
+        print("¡Has subido de nivel!")
+        level += 1
+        experience_needed = 1 + (level * 0)
+        experience -= experience
+        points = 2
+        while points > 0:
+            draw_line()
+            print(f"Salud: {health}")
+            print(f"Ataque: {attack}")
+            print(f"Defensa: {defense}")
+            print(f"Puntos restantes: {points}")
+            draw_line()
+            print("1.- Salud (+5)")
+            print("2.- Ataque (+1)")
+            print("3.- Defensa (+1)")
+            draw_line()
+            option = input("-> ")
+            if option == "1":
+                health += 5
+                points -= 1
+                clear()
+            elif option == "2":
+                attack += 1
+                points -= 1
+                clear()
+            elif option == "3":
+                defense += 1
+                points -= 1
+                clear()
+            else:
+                print("Opción no válida")
+                time.sleep(1)
+                clear()
+        print(f"Lvl: {level}")
+        time.sleep(2)
+        clear()
+
+
 
 #################################################################
 ##################### Programa principal ########################
@@ -457,56 +755,14 @@ def show_stats():
 
 while run:
     while menu:
-        clear()
-        draw_line()
-        print("1.- Juego Nuevo")
-        print("2.- Cargar Juego")
-        print("3.- Reglas")
-        print("4.- Salir")
-        draw_line()
-        
-        option = input("Ingrese una opción: ")
-        
-        if option == "1":
-            clear()
-            draw_line()
-            name = input("Recuerdas tu nombre?\n-> ")
-            clear()
-            print(f"Cierto... Me llamo {name},")
-            time.sleep(1)
-            type_text(" ¿verdad?", 0.1)
-            time.sleep(3)
-            clear()
-            type_text(txt_intro, 0.04)
-            time.sleep(5)
-            clear()
-            menu = False
-            play = True
-        elif option == "2":
-            clear()
-            load()
-        elif option == "3":
-            clear()
-            menu = False
-            rules = True
-        elif option == "4":
-            quit()
-            
+        main_menu()
     while play:
         save() # autosave
         clear()
-        
-        if not standing:
-            if biom[map[y][x]]["e"]:
-                if current_tile == "plains":
-                    enemy = random.choices(e_list, weights=[0.5, 0.3], k=1)[0]
-                    print(f"¡Te has encontrado con un {enemy} en las llanuras!")
-                    battle()
-                    standing = True
-        
-        
         draw_line()
         print("Has llegado a " + biom[map[y][x]]["t"])
+        time.sleep(1)
+        random_battle()
         draw_line()
         print("1.- Mostrar stats")
         print("2.- Moverse")
