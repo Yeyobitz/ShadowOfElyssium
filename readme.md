@@ -38,7 +38,7 @@ El juego fue creado por mí, su servidor, Yeyobitz. Puedes encontrar más inform
 
 Por favor, ten en cuenta que este juego está en proceso de desarrollo y puede contener errores. ¡Tu retroalimentación y sugerencias son apreciadas!
 
-## ~+X--------------------------------------------------------------------------------------------X+~
+## +X-----------------------------------------------------------------------------------X+
 
 ## Shadow of Elyssium
 Welcome to Elyssium, a realm of medieval fantasy where once peaceful lands have been corrupted by the appearance of entities from another world. These ancient and cosmic entities have distorted reality and nature, introducing horrors that the inhabitants of Elyssium have never seen before.

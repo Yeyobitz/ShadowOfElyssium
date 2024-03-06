@@ -989,18 +989,18 @@ def intro_and_title():
 # función que maneja el inicio de un juego nuevo
 def new_game():
     global menu, play, player
-    #type_text("Escuchas una voz en lo profundo de tu mente...\n", 0.03)
-    #type_text("\t R e c u e r d a  t u  n o m b r e .", 0.1)
+    type_text("Escuchas una voz en lo profundo de tu mente...\n", 0.03)
+    type_text("\t R e c u e r d a  t u  n o m b r e .", 0.1)
     player.name = input("\n-> ")
-    #clear()
-    #type_text(f"Cierto... Me llamo {player.name}", 0.05)
-    #time.sleep(1)
-    #type_text("...¿verdad?", 0.1)
-    #time.sleep(2)
+    clear()
+    type_text(f"Cierto... Me llamo {player.name}", 0.05)
+    time.sleep(1)
+    type_text("...verdad?", 0.1)
+    time.sleep(2)
     input("\n\n-> Press Enter <-\n")
     clear()
-    #intro_and_title()
-    #clear()
+    intro_and_title()
+    clear()
     menu = False
     play = True
     return
