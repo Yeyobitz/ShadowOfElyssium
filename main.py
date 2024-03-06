@@ -95,7 +95,6 @@ class Character:
             print("No tienes pociones.")
 
     def move(self, direction):
-        draw_line()
         if direction == "1":
             if self.y > 1:
                 draw_line()
@@ -938,11 +937,11 @@ def clear():
 
 # Dibujar línea
 def draw_tabed_big_line():
-    print("\t|~+X-------------------------------------------------------X+~|")
+    print("\t~+X-------------------------------------------------------X+~")
 def draw_big_line():
-    print("|~+X-------------------------------------------------------X+~|")
+    print("~+X-------------------------------------------------------X+~")
 def draw_line():
-    print("|~+X-----------------------------X+~|")
+    print("~+X-----------------------------X+~")
 
 # funciones para hacer que el texto aparezca de forma bonita
 def type_text_line(text, delay=0.5):
