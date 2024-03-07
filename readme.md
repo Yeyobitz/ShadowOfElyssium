@@ -21,7 +21,7 @@ Hay muchos enemigos en este juego, cada uno con objetos únicos que dejan caer.
 Esta es la primera versión jugable del juego y tiene mucho espacio para mejoras. Las actualizaciones futuras apuntarán a arreglar errores, mejorar la mecánica del juego y agregar nuevas características.
 
 # POR HACER:
-- Arreglar la función de carga (confunde el equipo y el inventario)
+- Arreglar la función de carga
 - Añadir eventos para la opción de "Investigar".
 - Añadir un sistema de magia/habilidades
 - Ajustar el balance de las peleas

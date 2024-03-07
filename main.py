@@ -9,14 +9,16 @@ rules = False
 credits = False
 fight = False
 autosave = False
+
 # Personaje
 class Character:
-    def __init__(self, name, health, attack, defense, gold, level, experience, x, y, potions, inventory, equipment, experience_needed, standing):
+    def __init__(self, name, health, attack, defense, speed, gold, level, experience, x, y, potions, inventory, equipment, experience_needed):
         self.name = name
         self.health = health
         self.max_health = self.health
         self.attack = attack
         self.defense = defense
+        self.speed = speed
         self.gold = gold
         self.level = level
         self.experience = experience
@@ -26,54 +28,74 @@ class Character:
         self.inventory = inventory
         self.equipment = equipment
         self.experience_needed = experience_needed
-        self.standing = standing
+        self.standing = True
         
     def show_inventory(self):
-        draw_line()
-        print("Inventario:")
-        draw_line()
-        for index, item in enumerate(self.inventory, start=1):
-            print(f"{index}. {item}")
-        draw_line()
-        print(f"Oro: {self.gold}")
-        print(f"Pociones: {self.potions}")
-        draw_line()
-        print("Qué deseas hacer?")
-        print("1. Equipar")
-        print("2. Desequipar")
-        print("3. Usar poción")
-        print("4. Salir")
-        draw_line()
-        choice = input("-> ")
-        if choice == "1":
-            index = int(input("Número del objeto: "))
-            self.equip(index)
-        elif choice == "2":
-            item = input("Nombre del objeto: ")
-            self.unequip(item)
-        elif choice == "3":
-            self.use_potion()
-        elif choice == "4":
-            pass
+        try:
+            draw_line()
+            print("Inventario:")
+            draw_line()
+            for i, item in enumerate(self.inventory, start=1):
+                print(f"{i}. {item}  ATK {items[item]['minAtk']}-{items[item]['maxAtk']}" if 'minAtk' in items[item] and 'maxAtk' in items[item] else f"{i}. {item}  DEF {items[item]['def']}" if 'def' in items[item] else f"{i}. {item}")
+            draw_line()
+            print(f"Oro: {self.gold} | Pociones: {self.potions}")
+            draw_line()
+            print("Qué deseas hacer?")
+            print("1. Equipar")
+            print("2. Mostrar Estado")
+            print("3. Usar poción")
+            print("0. Salir")
+            draw_line()
+            choice = input("-> ")
+            draw_line()
+            try:
+                choice = int(choice)
+                if choice == 1:
+                    index = int(input("Número del objeto: "))
+                    self.equip(index)
+                elif choice == 2:
+                    self.show_stats()
+                elif choice == 3:
+                    self.use_potion()
+                elif choice == 0:
+                    pass
+                else:
+                    print("Opción no válida.")
+                    input("-> Press Enter <-")
+            except ValueError:
+                print("Opción no válida.")
+                input("-> Press Enter <-")
+        except Exception as e:
+            print("Ha ocurrido un error al mostrar el inventario.")
+            print(f"({e})")
+            input("-> Press Enter <-")
 
     def equip(self, index):
-        if index > 0 and index <= len(self.inventory):
-            item = self.inventory[index-1]
-            if item not in self.equipment:
-                self.equipment.append(item)
-                print(f"Has equipado {item}.")
-                self.inventory.pop(index-1)
-            else:
-                print(f"{item} ya está equipado.")
-        else:
-            print("Opción no válida.")
-
-    def unequip(self, item):
-        if item in self.equipment:
-            self.equipment.remove(item)
-            print(f"Has desequipado {item}.")
-        else:
-            print(f"No tienes {item} equipado.")
+        try:
+            if index > 0 and index <= len(self.inventory):
+                item = self.inventory[index-1]
+                if item in self.equipment:
+                    print(f"{item} ya está equipado.")
+                elif "weapon" in items[item]["type"]:
+                    if self.equipment[0] != "nothing":
+                        self.inventory.append(self.equipment[0])
+                        self.inventory.pop(index-1)
+                    self.equipment[0] = item
+                    print(f"Has equipado {item}.")
+                elif "armor" in items[item]["type"]:
+                    if self.equipment[1] != "nothing":
+                        self.inventory.append(self.equipment[1])
+                        self.inventory.pop(index-1)
+                    self.equipment[1] = item
+                    print(f"Has equipado {item}.")
+                else:
+                    print("Objeto no equipable.")
+            draw_line()
+            input("-> Press Enter <-")
+        except Exception as e:
+            print("Ha ocurrido un error al equipar el objeto.")
+            print(f"({e})")
+            input("-> Press Enter <-")
 
 # función para sumar la defensa de la armor a la defensa base del personaje y devolver el valor total
     def total_defense(self):
@@ -88,65 +110,92 @@ class Character:
 
     def use_potion(self):
         if self.potions > 0:
-            self.health += 30
+            self.health = min(self.max_health, self.health + 30)
             self.potions -= 1
             print("Has bebido una poción. +30 de salud.")
         else:
             print("No tienes pociones.")
 
-    def move(self, direction):
-        if direction == "1":
-            if self.y > 1:
+    def move(self):
+        draw_line()
+        print("1.- Norte")
+        print("2.- Sur")
+        print("3.- Este")
+        print("4.- Oeste")
+        print("9.- Mapa")
+        print("0.- Volver")
+        draw_line()
+        direction = input("-> ")
+        try:
+            if direction == "1":
+                if self.y > 0:
+                    draw_line()
+                    type_text("Caminas hacia el norte...")
+                    draw_line()
+                    self.y -= 1
+                    self.standing = False
+                    time.sleep(1.5)
+                else:
+                    draw_big_line()
+                    print("Al norte no hay más que hielo y una muerte segura...")
+                    draw_big_line()
+            elif direction == "2":
+                if self.y < y_len:
+                    draw_line()
+                    type_text("Caminas hacia el sur...")
+                    draw_line()
+                    self.y += 1
+                    self.standing = False
+                    time.sleep(1.5)
+                else:
+                    draw_big_line()
+                    print("Hay un gran abismo al sur imposible de cruzar...")
+                    draw_big_line()
+            elif direction == "3":
+                if self.x < x_len:
+                    draw_line()
+                    type_text("Caminas hacia el este...")
+                    draw_line()
+                    self.x += 1
+                    self.standing = False
+                    time.sleep(1.5)
+                else:
+                    draw_big_line()
+                    print("El llano vacío y oscuro que se extiende\nal este no parece muy acogedor...")
+                    draw_big_line()
+            elif direction == "4":
+                if self.x > 0:
+                    draw_line()
+                    type_text("Caminas hacia el oeste...")
+                    draw_line()
+                    self.x -= 1
+                    self.standing = False
+                    time.sleep(1.5)
+                else:
+                    draw_big_line()
+                    print("Al oeste quizás hayan tierras desconocidas\npero sin un barco no llegarás muy lejos...")
+                    draw_big_line()
+            elif direction == "9":
+                clear()
                 draw_line()
-                type_text("Caminas hacia el norte...")
+                show_map()
                 draw_line()
-                self.y -= 1
-                self.standing = False
-                time.sleep(1.5)
-            else:
-                draw_big_line()
-                print("Al norte no hay más que hielo y una muerte segura...")
-                draw_big_line()
-        elif direction == "2":
-            if self.y < y_len:
-                draw_line()
-                type_text("Caminas hacia el sur...")
-                draw_line()
-                self.y += 1
-                self.standing = False
-                time.sleep(1.5)
-            else:
-                draw_big_line()
-                print("Hay un gran abismo al sur imposible de cruzar...")
-                draw_big_line()
-        elif direction == "3":
-            if self.x < x_len:
-                draw_line()
-                type_text("Caminas hacia el este...")
-                draw_line()
-                self.x += 1
-                self.standing = False
-                time.sleep(1.5)
-            else:
-                draw_big_line()
-                print("El llano vacío y oscuro que se extiende\nal este no parece muy acogedor...")
-                draw_big_line()
-        elif direction == "4":
-            if self.x > 0:
-                draw_line()
-                type_text("Caminas hacia el oeste...")
-                draw_line()
-                self.x -= 1
-                self.standing = False
-                time.sleep(1.5)
-            else:
-                draw_big_line()
-                print("Al oeste quizás hayan tierras desconocidas\npero sin un barco no llegarás muy lejos...")
-                draw_big_line()
-        else:
-            print("Dirección no válida.")
+                input("-> Press Enter <-")
+                clear()
+                
+                
+            
+            elif direction == "0":
+                pass
+        except Exception as e:
+            print("Opción no válida")
+            print(f"({e})")
+            input("-> Press Enter <-")
+            clear()
 
     def show_stats(self):
+        clear()
+        draw_line()
         print(f"Nombre: {self.name}")
         print(f"LVL: {self.level}")
         print(f"EXP: {self.experience}/{self.experience_needed}")
@@ -164,47 +213,54 @@ class Character:
             print(f"Equipo: {equipment}")
         except:
             print("No tienes nada equipado.")
+        draw_line()
+        input("-> Press Enter <-")
+        self.show_inventory()
 
     def level_up(self):
-        self.level += 1
-        self.experience -= self.experience_needed
-        self.experience_needed +=  int(float(1.5 * self.experience_needed))
-        points = 2
-        print(f"¡Has subido de nivel! Ahora eres nivel {self.level}.")
-        print(f"Has ganado {points} puntos de habilidad.")
-        while points > 0:
+        try:
+            self.level += 1
+            self.experience -= self.experience_needed
+            self.experience_needed += int(float(1.5 * self.experience_needed))
+            points = 3
+            print(f"¡Has subido de nivel! Ahora eres nivel {self.level}.")
+            print(f"Has ganado {points} puntos de habilidad.")
+            while points > 0:
+                draw_line()
+                print("Puntos de habilidad restantes:", points)
+                print("1. Aumentar salud máxima (+5).")
+                print("2. Aumentar ataque (+1).")
+                print("3. Aumentar defensa (+1).")
+                print("4. Aumentar velocidad (+1).")
+                draw_line()
+                choice = input("Elige una opción: ")
+                if choice == "1":
+                    self.max_health += 5
+                    self.health = self.max_health
+                    points -= 1
+                elif choice == "2":
+                    self.attack += 2
+                    points -= 1
+                elif choice == "3":
+                    self.defense += 1
+                    points -= 1
+                elif choice == "4":
+                    self.speed += 1
+                    points -= 1
+                else:
+                    print("Opción no válida.")
+            print(f"HP: {self.max_health}")
+            print(f"ATK: {self.attack}")   
+            print(f"DEF: {self.defense}")
+            print(f"SPD: {self.speed}")
             draw_line()
-            print("Puntos de habilidad restantes:", points)
-            print("1. Aumentar salud máxima (+5).")
-            print("2. Aumentar ataque (+2).")
-            print("3. Aumentar defensa (+1).")
-            draw_line()
-            choice = input("Elige una opción: ")
-            if choice == "1":
-                self.max_health += 5
-                self.health = self.max_health
-                points -= 1
-            elif choice == "2":
-                self.attack += 2
-                points -= 1
-            elif choice == "3":
-                self.defense += 1
-                points -= 1
-            else:
-                print("Opción no válida.")
-        print(f"HP: {self.max_health}")
-        print(f"ATK: {self.attack}")   
-        print(f"DEF: {self.defense}")
+            input("-> Press Enter <-")
+            clear()
+        except Exception as e:
+            print("Ha ocurrido un error al subir de nivel.")
+            print(f"({e})")
+            input("-> Press Enter <-")
         
-        
-        """
-        self.max_health += 10
-        self.health = self.max_health
-        self.attack += 2
-        self.defense += 1
-        """
-        print(f"¡Has subido de nivel! Ahora eres nivel {self.level}.")
-
     def calculate_damage(self):
         # Check if the player's weapon is in the items dictionary and has attack values defined
         try:
@@ -218,7 +274,7 @@ class Character:
             print("No tienes un arma equipada.")
             return self.attack
 
-player = Character("", 30, 5, 3, 0, 1, 0, 1, 1, 3, [], ["Espada Corta", "Armadura de Cuero"], 100, True)
+player = Character("", 30, 5, 3, 3, 0, 1, 0, 1, 1, 3, ["Espada de los Antiguos","Túnica de los Antiguos"], ["Espada Corta", "Armadura de Cuero"], 10)
 
 class Enemy:
     def __init__(self, name):
@@ -227,6 +283,7 @@ class Enemy:
         self.max_health = self.health
         self.attack = mobs[name]["attack"]
         self.defense = mobs[name]["defense"]
+        self.speed = mobs[name]["speed"]
         self.gold = mobs[name]["gold"]
         self.experience = mobs[name]["experience"]
         self.weapon = mobs[name]["weapon"]
@@ -234,32 +291,42 @@ class Enemy:
         self.drop_rate = mobs[name]["drop_rate"]
             
     def calculate_damage(self):
-        # Check if the enemy's weapon is in the items dictionary and has attack values defined
-        if self.weapon in items and 'minAtk' in items[self.weapon] and 'maxAtk' in items[self.weapon]:
-            weapon_damage = random.randint(items[self.weapon]['minAtk'], items[self.weapon]['maxAtk'])
-        else:
-            weapon_damage = 0
-        total_damage = self.attack + weapon_damage
-        return total_damage
-    
+        try:
+            # Check if the enemy's weapon is in the items dictionary and has attack values defined
+            if self.weapon in items and 'minAtk' in items[self.weapon] and 'maxAtk' in items[self.weapon]:
+                weapon_damage = random.randint(items[self.weapon]['minAtk'], items[self.weapon]['maxAtk'])
+            else:
+                weapon_damage = 0
+            total_damage = self.attack + weapon_damage
+            return total_damage
+        except:
+            # Handle any exception that occurs
+            print("An error occurred while calculating enemy total damage.")
+            return 0
     def total_defense(self):
-        total_defense = self.defense
-        if self.armor in items and items[self.armor]["type"] == "armor":
-            total_defense += items[self.armor]["def"]
-        return total_defense
+        try:
+            total_defense = self.defense
+            if self.armor in items and items[self.armor]["type"] == "armor":
+                total_defense += items[self.armor]["def"]
+            return total_defense
+        except:
+            print("An error occurred while calculating enemy total defense.")
+            return 0
     
     # función para que el enemigo dropee un item; weapon o armor, de los que tiene equipado según el drop_rate definido en el diccionario de enemigos
     def drop_item(self):
-        if random.random() < self.drop_rate:
-            if self.weapon != "nothing":
-                player.inventory.append(self.weapon)
-                print(f"El {self.name} ha dejado caer {self.weapon}.")
-            if self.armor != "nothing":
-                player.inventory.append(self.armor)
-                print(f"El {self.name} ha dejado caer {self.armor}.")
-        else:
-            print(f"El {self.name} no ha dejado caer nada.")
-    
+        try:
+            if random.random() < self.drop_rate:
+                if self.weapon != "nothing":
+                    player.inventory.append(self.weapon)
+                    print(f"El {self.name} ha dejado caer {self.weapon}.")
+                if self.armor != "nothing":
+                    player.inventory.append(self.armor)
+                    print(f"El {self.name} ha dejado caer {self.armor}.")
+            else:
+                print(f"El {self.name} no ha dejado caer nada.")
+        except Exception as e:
+            print(f"An error occurred while dropping item: {str(e)}")
 
 ############################################## Items list ##############################################
 # Haremos tantas espadas y armaduras como enemigos haya, para que cada uno tenga un set distinto que dropee
@@ -460,7 +527,7 @@ y_len = len(map)-1
 x_len = len(map[0])-1
 
 # Biomas
-biom = {
+biom = { 
     "plains":{
         "t": "los Llanos",
         "e": True
@@ -550,7 +617,8 @@ mobs = {
         "experience": 5,
         "weapon": "Garrote Astillado",
         "armor": "Túnica Desgarrada",
-        "drop_rate": 0.2
+        "drop_rate": 0.2,
+        "speed": 2
         },
     "Bestia poseída": {
         "health": 40,
@@ -560,7 +628,8 @@ mobs = {
         "experience": 10,
         "weapon": "Garras Eldritch",
         "armor": "nothing",
-        "drop_rate": 0.3
+        "drop_rate": 0.3,
+        "speed": 2
     },
     "Espectro": {
         "health": 50,
@@ -570,7 +639,8 @@ mobs = {
         "experience": 12,
         "weapon": "Susurro Fantasmal",
         "armor": "nothing",
-        "drop_rate": 0.1
+        "drop_rate": 0.1,
+        "speed": 2
     },
     "Cultista": {
         "health": 45,
@@ -580,7 +650,8 @@ mobs = {
         "experience": 9,
         "weapon": "Daga de Cultista",
         "armor": "Túnica Desgarrada",
-        "drop_rate": 0.2
+        "drop_rate": 0.2,
+        "speed": 2
     },
     "Gárgola de Eldritch": {
         "health": 65,
@@ -590,7 +661,8 @@ mobs = {
         "experience": 20,
         "weapon": "Lanza de Piedra",
         "armor": "Escamas Abisales",
-        "drop_rate": 0.3
+        "drop_rate": 0.3,
+        "speed": 2
     },
     "Horror abisal": {
         "health": 70,
@@ -600,7 +672,8 @@ mobs = {
         "experience": 25,
         "weapon": "Espada Caída",
         "armor": "Vestimentas Etéreas",
-        "drop_rate": 0.3
+        "drop_rate": 0.3,
+        "speed": 2
     },
     "Pesadilla viviente": {
         "health": 90,
@@ -610,7 +683,8 @@ mobs = {
         "experience": 30,
         "weapon": "Garras de Kruegger",
         "armor": "Sueter a Rayas",
-        "drop_rate": 0.1
+        "drop_rate": 0.1,
+        "speed": 2
     },
     "Sombra de la locura": {
         "health": 50,
@@ -620,7 +694,8 @@ mobs = {
         "experience": 18,
         "weapon": "Susurro Fantasmal",
         "armor": "Túnica Desgarrada",
-        "drop_rate": 0.2
+        "drop_rate": 0.2,
+        "speed": 2
     },
     "Cultista poseído": {
         "health": 55,
@@ -630,7 +705,8 @@ mobs = {
         "experience": 17,
         "weapon": "Daga de Cultista",
         "armor": "Vestiduras del Ritual Prohibido",
-        "drop_rate": 0.2
+        "drop_rate": 0.2,
+        "speed": 2
     },
     "Acólito del Vacío": {
         "health": 25,
@@ -640,7 +716,8 @@ mobs = {
         "experience": 8,
         "weapon": "Susurro Fantasmal",
         "armor": "Vestiduras del Ritual Prohibido",
-        "drop_rate": 0.1
+        "drop_rate": 0.1,
+        "speed": 2
     },
     "Médium Corrompido": {
         "health": 40,
@@ -650,7 +727,8 @@ mobs = {
         "experience": 11,
         "weapon": "Muñeco Vuudú",
         "armor": "Vestimentas de la Locura",
-        "drop_rate": 0.1
+        "drop_rate": 0.1,
+        "speed": 2
     },
     "Paladín Caído": {
         "health": 65,
@@ -660,7 +738,8 @@ mobs = {
         "experience": 22,
         "weapon": "Espada Caída",
         "armor": "Coraza del Paladín Caído",
-        "drop_rate": 0.3
+        "drop_rate": 0.3,
+        "speed": 2
     },
     "Guardián de la Tumba": {
         "health": 75,
@@ -670,7 +749,8 @@ mobs = {
         "experience": 25,
         "weapon": "Espada Caída",
         "armor": "Escamas Abisales",
-        "drop_rate": 0.2
+        "drop_rate": 0.2,
+        "speed": 2
     },
     "Cazador de Mentes": {
         "health": 30,
@@ -680,7 +760,8 @@ mobs = {
         "experience": 30,
         "weapon": "Ballesta Maldita",
         "armor": "Loriga del Cazador de Mentes",
-        "drop_rate": 0.1
+        "drop_rate": 0.1,
+        "speed": 2
     },
     "Abominación de las Ruinas": {
         "health": 80,
@@ -690,7 +771,8 @@ mobs = {
         "experience": 30,
         "weapon": "Espada Caída",
         "armor": "Vestimentas Etéreas",
-        "drop_rate": 0.3
+        "drop_rate": 0.3,
+        "speed": 2
     },
     "Avatar de la Desesperación": {
         "health": 55,
@@ -700,7 +782,8 @@ mobs = {
         "experience": 19,
         "weapon": "Espada de Mil Gritos",
         "armor": "Vestimentas de la Locura",
-        "drop_rate": 0.2
+        "drop_rate": 0.2,
+        "speed": 2
     },
     "Devorador de Almas": {
         "health": 60,
@@ -710,7 +793,8 @@ mobs = {
         "experience": 21,
         "weapon": "Hacla del Cataclismo",
         "armor": "Túnica Desgarrada",
-        "drop_rate": 0.2
+        "drop_rate": 0.2,
+        "speed": 2
     },
     "Titán de los Antiguos": {
         "health": 100,
@@ -720,7 +804,8 @@ mobs = {
         "experience": 35,
         "weapon": "Maza del Núcleo Abisal",
         "armor": "Coraza del Abismo Sin Estrellas",
-        "drop_rate": 0.2
+        "drop_rate": 0.2,
+        "speed": 2
     },
     "Engendro del Caos": {
         "health": 90,
@@ -730,7 +815,8 @@ mobs = {
         "experience": 33,
         "weapon": "Dagas Gemelas del Caos", 
         "armor": "Vestimentas de la Locura",
-        "drop_rate": 0.3
+        "drop_rate": 0.3,
+        "speed": 2
     },
     "Emisario del Horizonte Estelar": {
         "health": 120,
@@ -740,7 +826,8 @@ mobs = {
         "experience": 45,
         "weapon": "Alabarada de Elyssium",
         "armor": "Armadura de Elyssium",
-        "drop_rate": 0.5
+        "drop_rate": 0.5,
+        "speed": 2
     },
     # Jefe Final
     "Heredero de los Antiguos": {
@@ -752,7 +839,8 @@ mobs = {
         "weapon": "Espada de los Antiguos",
         "armor": "Túnica de los Antiguos",
         "drop_rate": 0.5,
-        "boss": True
+        "boss": True,
+        "speed": 2
     },
     "ninguno": {
         "health": 0,
@@ -762,7 +850,9 @@ mobs = {
         "experience": 0,
         "weapon": "nothing",
         "armor": "nothing",
-        "drop_rate": 0
+        "drop_rate": 0,
+        "speed": 0,
+        "boss": False
     }
         
 }
@@ -845,11 +935,11 @@ txt_intro = """
                 
                     Han distorsionado la realidad, 
                         corrompido la tierra,
-                            la naturaleza 
-                           y al ser humano.
+                           la naturaleza 
+                          y al ser humano.
            
                 Podrás descubrir lo que se esconde más allá
-                        de la sombre de Elyssium?
+                       de la sombre de Elyssium?
 """
 
 
@@ -874,31 +964,55 @@ def save(player):
             player.equipment,
             player.experience_needed]
     
-    with open(f"{player.name}_save.txt", "w") as f:
-        for item in data:
-            f.write(str(item) + "\n")
+    try:
+        with open(f"{player.name}_save.txt", "w") as f:
+            for item in data:
+                f.write(str(item) + "\n")
+    except Exception as e:
+        print(f"Error saving data: {e}")
 
 # Cargar
 def load():
     global menu, play, player
     try:
-        name = input("Nombre EXACTO del personaje: ")
+        save_files = [file.replace("_save.txt", "") for file in os.listdir() if file.endswith("_save.txt")]
+        if len(save_files) == 0:
+            print("No se encontraron partidas guardadas.")
+            input("Presiona enter para continuar...")
+            menu = True
+            play = False
+            return
+        draw_line()
+        print("      Partidas guardadas")
+        draw_line()
+        for i, file in enumerate(save_files):
+            print(f"{i+1}. {file}")
+        draw_line()
+        choice = input("Escriba el número del personaje\n-> ")
+        if not choice.isdigit() or int(choice) < 1 or int(choice) > len(save_files):
+            print("Opción inválida.")
+            input("Presiona enter para continuar...")
+            menu = True
+            play = False
+            return
+        name = save_files[int(choice)-1]
         with open(f"{name}_save.txt", "r") as f:
             lines = f.readlines()
             name = lines[0].replace("\n", "")
             health = int(lines[1])
             attack = int(lines[2])
             defense = int(lines[3])
-            gold = int(lines[4])
-            level = int(lines[5])
-            experience = int(lines[6])
-            x = int(lines[7])
-            y = int(lines[8])
-            potions = int(lines[9])
-            inventory = lines[10]
-            equipment = lines[11]
-            experience_needed = int(lines[12])
-            standing = True
+            speed = int(lines[4])
+            gold = int(lines[5])
+            level = int(lines[6])
+            experience = int(lines[7])
+            x = int(lines[8])
+            y = int(lines[9])
+            potions = int(lines[10])
+            inventory = [item.strip("[]'") for item in lines[11].strip().split(', ')]
+            equipment = [item.strip("[]'") for item in lines[12].strip().split(', ')]
+            experience_needed = int(lines[13])
+            player.standing = True
             draw_line()
             print("Cargando juego...")
             time.sleep(2)
@@ -907,7 +1021,7 @@ def load():
             print("Estos son tus datos: ")
             time.sleep(1)
             draw_line()
-            player = Character(name, health, attack, defense, gold, level, experience, x, y, potions, inventory, equipment, experience_needed, standing)
+            player = Character(name, health, attack, defense, gold, level, experience, x, y, potions, inventory, equipment, experience_needed)
             print(f"Nombre: {player.name}")
             print(f"Nivel: {player.level}")
             print(f"Oro: {player.gold}")
@@ -925,7 +1039,7 @@ def load():
         play = False
 
     except Exception as e:
-        print("Chanfle, no se encontró el archivo de guardado.")
+        print("Chanfle, ocurrió un error al cargar la partida.")
         print(f"({e})")
         input("Presiona enter para continuar...")
         menu = True
@@ -989,17 +1103,23 @@ def intro_and_title():
 # función que maneja el inicio de un juego nuevo
 def new_game():
     global menu, play, player
-    type_text("Escuchas una voz en lo profundo de tu mente...\n", 0.03)
-    type_text("\t R e c u e r d a  t u  n o m b r e .", 0.1)
-    player.name = input("\n-> ")
-    clear()
-    type_text(f"Cierto... Me llamo {player.name}", 0.05)
-    time.sleep(1)
-    type_text("...verdad?", 0.1)
-    time.sleep(2)
-    input("\n\n-> Press Enter <-\n")
-    clear()
-    intro_and_title()
+    #type_text("Escuchas una voz en lo profundo de tu mente...\n", 0.03)
+    #type_text("\t R e c u e r d a  t u  n o m b r e .", 0.1)
+    while True:
+        player.name = input("\n-> ")
+        if len(player.name) >= 2:
+            break
+        else:
+            print("El nombre debe tener al menos 2 caracteres.\n")
+            draw_line()
+    #clear()
+   # type_text(f"Cierto... Me llamo {player.name}", 0.05)
+    #time.sleep(1)
+    #type_text("...verdad?", 0.1)
+    #time.sleep(2)
+    #input("\n\n-> Press Enter <-\n")
+   # clear()
+   # intro_and_title()
     clear()
     menu = False
     play = True
@@ -1008,33 +1128,40 @@ def new_game():
 # función que maneja el menú principal
 def main_menu():
     global menu, rules, credits
-    clear()
-    draw_line()
-    print("1.- Juego Nuevo")
-    print("2.- Cargar Juego")
-    print("3.- Reglas")
-    print("4.- Créditos")
-    print("0.- Salir")
-    draw_line()
-    
-    option = input("-> ")
-    
-    if option == "1":
+    try:
         clear()
-        new_game()
-    elif option == "2":
-        clear()
-        load()
-    elif option == "3":
-        clear()
-        menu = False
-        rules = True
-    elif option == "4":
-        clear()
-        menu = False
-        credits = True
-    elif option == "0":
-        quit()
+        draw_line()
+        print("1.- Juego Nuevo")
+        print("2.- Cargar Juego")
+        print("3.- Reglas")
+        print("4.- Créditos")
+        print("0.- Salir")
+        draw_line()
+
+        option = input("-> ")
+
+        if option == "1":
+            clear()
+            new_game()
+        elif option == "2":
+            clear()
+            load()
+        elif option == "3":
+            clear()
+            menu = False
+            rules = True
+        elif option == "4":
+            clear()
+            menu = False
+            credits = True
+        elif option == "0":
+            quit()
+        else:
+            print("Opción inválida. Por favor, seleccione una opción válida.")
+            main_menu()
+    except Exception as e:
+        print("Ha ocurrido un error:", str(e))
+        main_menu()
         
 # función que maneja las reglas del juego
 def rules_menu():
@@ -1242,68 +1369,73 @@ def random_battle():
             player.standing = True
             play = True
         
-
 # Versión mejorada de la función battle() con el código actualizado de la clase Character y Enemy
-def battle_v2(enemy_name):
+def battle_Old(enemy_name):
     global menu, player, play
     global enemy
     enemy = Enemy(enemy_name)
     while player.health > 0 and enemy.health > 0:
-        draw_line()
-        print(f"{player.name}: {player.health}/{player.max_health}")
-        print(f"{enemy_name}: {enemy.health}/{enemy.max_health}")
-        draw_line()
-        print("1.- Atacar")
-        print("2.- Usar poción")
-        print("3.- Huir")
-        draw_line()
-        option = input("-> ")
-        draw_line()
-        if option == "1":
-            # Ataque del jugador
-            damage = player.calculate_damage() - enemy.total_defense()
-            if damage < 0:
-                damage = 0
-            enemy.health -= damage
-            print(f"¡Le has quitado {damage} de salud al {enemy_name}!")
-            time.sleep(2)
-            if enemy.health <= 0:
-                break
-            # Ataque del enemigo
-            damage = enemy.calculate_damage() - player.total_defense()
-            if damage < 0:
-                damage = 0
-            player.health -= damage
-            print(f"¡El {enemy_name} te ha quitado {damage} de salud!")
-            time.sleep(2)
-            clear()
-        elif option == "2":
-            if player.potions > 0:
-                player.health += 30
-                player.potions -= 1
-                print("Has usado una poción y recuperado 30 puntos de salud.")
+        try:
+            draw_line()
+            print(f"{player.name}: {player.health}/{player.max_health}")
+            print(f"{enemy_name}: {enemy.health}/{enemy.max_health}")
+            draw_line()
+            print("1.- Atacar")
+            print("2.- Usar poción")
+            print("3.- Huir")
+            draw_line()
+            option = input("-> ")
+            draw_line()
+            if option == "1":
+                # Ataque del jugador
+                damage = player.calculate_damage() - enemy.total_defense()
+                if damage < 0:
+                    damage = 0
+                enemy.health -= damage
+                print(f"¡Le has quitado {damage} de salud al {enemy_name}!")
+                time.sleep(2)
+                if enemy.health <= 0:
+                    break
+                # Ataque del enemigo
+                damage = enemy.calculate_damage() - player.total_defense()
+                if damage < 0:
+                    damage = 0
+                player.health -= damage
+                print(f"¡El {enemy_name} te ha quitado {damage} de salud!")
                 time.sleep(2)
                 clear()
+            elif option == "2":
+                if player.potions > 0:
+                    player.health += 30
+                    player.potions -= 1
+                    print("Has usado una poción y recuperado 30 puntos de salud.")
+                    time.sleep(2)
+                    clear()
+                else:
+                    print("No tienes pociones...")
+                    time.sleep(2)
+                    clear()
+            elif option == "3":
+                if random.randint(1, 100) <= 70:  # Tienes un 70% de probabilidad de huir con éxito
+                    clear()
+                    draw_line()
+                    print("Has conseguido huir...")
+                    draw_line()
+                    clear()
+                    play = True
+                    break
+                else:
+                    clear()
+                    type_text("\tN O  E S C A P A R A S\n", 0.05)
+                    time.sleep(1)
+                    clear()
+                    pass
             else:
-                print("No tienes pociones...")
-                time.sleep(2)
+                print("Opción no válida")
+                input("-> Press Enter <-")
                 clear()
-        elif option == "3":
-            probability = random.randint(1, 100)
-            if probability > 70:
-                clear()
-                type_text("\tN O  E S C A P A R A S\n", 0.05)
-                time.sleep(1)
-                clear()
-            clear()
-            draw_line()
-            print("Has conseguido huir...")
-            draw_line()
-            clear()
-            play = True
-            break
-        else:
-            print("Opción no válida")
+        except Exception as e:
+            print(f"Error: {e}")
             input("-> Press Enter <-")
             clear()
     if player.health <= 0:
@@ -1325,229 +1457,267 @@ def battle_v2(enemy_name):
         player.gold += enemy.gold
         player.experience += enemy.experience
         
-        if random.random() < enemy.drop_rate:
-            # El enemigo ha dejado caer un item
-            dropped_item = enemy.drop_item()
-            if dropped_item != "nothing":
-                print(f"{enemy_name} ha soltado {dropped_item}.")
-            player.inventory.append(dropped_item)
+        try:
+            if random.random() < enemy.drop_rate:
+                # El enemigo ha dejado caer un item
+                dropped_item = enemy.drop_item()
+                if dropped_item != "nothing":
+                    print(f"{enemy_name} ha soltado {dropped_item}.")
+                    player.inventory.append(dropped_item)
             
-        if random.random() < 0.1:
-            player.potions += 1
-            print("El enemigo ha dejado caer una poción.")
-        # Subir de nivel
-        if player.experience >= player.experience_needed:
-            time.sleep(2)
-            level_up()
-            play = True
-        else:
-            time.sleep(2)
+            if random.random() < 0.1:
+                player.potions += 1
+                print("El enemigo ha dejado caer una poción.")
+            # Subir de nivel
+            if player.experience >= player.experience_needed:
+                time.sleep(2)
+                player.level_up()
+                play = True
+            else:
+                time.sleep(2)
+                clear()
+                play = True
+        except Exception as e:
+            print(f"Error: {e}")
+            input("-> Press Enter <-")
             clear()
-            play = True
 
-# versión mejorada y combinada de random_battle() y battle_v2()
-def random_battle_v2():
-    global player, play, enemy
-    # Batalla random
-    if not player.standing:
-        if biom[map[player.y][player.x]]["e"]:
-            if current_tile == "plains":
-                enemy = random.choices(e_list, weights=plains_weight, k=1)[0]
-                if enemy == "ninguno":
-                    player.standing = True
-                    print("Está tranquilo por aquí...")
-                    time.sleep(3)
-                    clear()
-                    play = True
-                else:
-                    enemy = Enemy(enemy)
-                    print(f"¡Te has encontrado con un {enemy.name} en las llanuras!")
-                    battle_v2()
-            elif current_tile == "forest":
-                enemy = random.choices(e_list, weights=forest_weight, k=1)[0]
-                if enemy == "ninguno":
-                    player.standing = True
-                    print("El susurro de las hojas llena tu corazón de angustia...")
-                    time.sleep(3)
-                    clear()
-                    play = True
-                else:
-                    enemy = Enemy(enemy)
-                    print(f"¡Te has encontrado con un {enemy} en el bosque!")
-                    battle_v2()
-            elif current_tile == "beach":
-                enemy = random.choices(e_list, weights=beach_weight, k=1)[0]
-                if enemy == "ninguno":
-                    player.standing = True
-                    print("La calma de las olas solo inquieta tu mente...")
-                    time.sleep(3)
-                    clear()
-                    play = True
-                else:
-                    enemy = Enemy(enemy)
-                    print(f"¡Te has encontrado con un {enemy} en la playa!")
-                    battle_v2()
-            elif current_tile == "mountains":
-                enemy = random.choices(e_list, weights=mountains_weight, k=1)[0]
-                if enemy == "ninguno":
-                    player.standing = True
-                    print("El viento hiela hasta tus huesos...")
-                    time.sleep(3)
-                    clear()
-                    play = True
-                else:
-                    enemy = Enemy(enemy)
-                    print(f"¡Te has encontrado con un {enemy} en las montañas!")
-                    battle_v2()
-            elif current_tile == "ruined city":
-                enemy = random.choices(e_list, weights=ruined_city_weight, k=1)[0]
-                if enemy == "ninguno":
-                    player.standing
-# Función para subir de nivel y asignar puntos
-def level_up():
-    global player
-    if player.experience >= player.experience_needed:
-        clear()
-        print("¡Has subido de nivel!")
-        player.level += 1
-        player.experience_needed += (player.level * 0)
-        player.experience -= player.experience
-        points = 2
-        while points > 0:
+# Versión mejorada de battle() en la cual cambiaremos todo el sistema de batalla
+# para que sea más interactivo y dinámico
+# El jugador cuando le toque atacar podrá elegir entre 2 tipos de ataque:
+# - Ataque fuerte: Hace más daño pero tiene menos probabilidad de acertar
+# - Ataque rápido: Hace menos daño pero tiene más probabilidad de acertar
+# El enemigo atcará de forma aleatoria entre los dos tipos de ataque
+def battle_v2(enemy_name):
+    global menu, player, play
+    global enemy
+    enemy = Enemy(enemy_name)
+    while player.health > 0 and enemy.health > 0:
+        try:
             draw_line()
-            print(f"Salud: {player.health}")
-            print(f"Ataque: {player.attack}")
-            print(f"Defensa: {player.defense}")
-            print(f"Puntos restantes: {points}")
+            print(f"{player.name}: {player.health}/{player.max_health}")
+            print(f"{enemy_name}: {enemy.health}/{enemy.max_health}")
             draw_line()
-            print("1.- Salud (+5)")
-            print("2.- Ataque (+1)")
-            print("3.- Defensa (+1)")
+            print("1.- Ataque fuerte")
+            print("2.- Ataque rápido")
+            print("3.- Usar poción")
+            print("4.- Huir")
             draw_line()
             option = input("-> ")
+            draw_line()
             if option == "1":
-                player.health += 5
-                points -= 1
+                # Ataque del jugador
+                if random.random() < 0.7:  # 70% de probabilidad de acertar
+                    damage = player.calculate_damage() * 2 - enemy.total_defense()
+                    if damage < 0:
+                        damage = 0
+                    enemy.health -= damage
+                    print(f"¡Le has quitado {damage} de salud al {enemy_name}!")
+                    time.sleep(2)
+                    if enemy.health <= 0:
+                        break
+                else:
+                    print("¡Has fallado el ataque!")
+                    time.sleep(2)
+                # Ataque del enemigo
+                if random.random() < 0.5:  # 50% de probabilidad de ataque rápido
+                    damage = enemy.calculate_damage() - player.total_defense()
+                    if damage < 0:
+                        damage = 0
+                    player.health -= damage
+                    print(f"¡El {enemy_name} te ha quitado {damage} de salud!")
+                    time.sleep(2)
+                else:
+                    damage = enemy.calculate_damage() * 2 - player.total_defense()
+                    if damage < 0:
+                        damage = 0
+                    player.health -= damage
+                    print(f"¡El {enemy_name} te ha quitado {damage} de salud!")
+                    time.sleep(2)
                 clear()
             elif option == "2":
-                player.attack += 1
-                points -= 1
+                if random.random() < 0.9:  # 90% de probabilidad de acertar
+                    damage = player.calculate_damage() - enemy.total_defense()
+                    if damage < 0:
+                        damage = 0
+                    enemy.health -= damage
+                    print(f"¡Le has quitado {damage} de salud al {enemy_name}!")
+                    time.sleep(2)
+                    if enemy.health <= 0:
+                        break
+                else:
+                    print("¡Has fallado el ataque!")
+                    time.sleep(2)
+                # Ataque del enemigo
+                if random.random() < 0.5:
+                    damage = enemy.calculate_damage() - player.total_defense()
+                    if damage < 0:
+                        damage = 0
+                    player.health -= damage
+                    print(f"¡El {enemy_name} te ha quitado {damage} de salud!")
+                    time.sleep(2)
+                else:
+                    damage = enemy.calculate_damage() * 2 - player.total_defense()
+                    if damage < 0:
+                        damage = 0
+                    player.health -= damage
+                    print(f"¡El {enemy_name} te ha quitado {damage} de salud!")
+                    time.sleep(2)
                 clear()
             elif option == "3":
-                player.defense += 1
-                points -= 1
-                clear()
+                if player.potions > 0:
+                    player.health += 30
+                    player.potions -= 1
+                    print("Has usado una poción y recuperado 30 puntos de salud.")
+                    time.sleep(2)
+                    clear()
+                else:
+                    print("No tienes pociones...")
+                    time.sleep(2)
+                    clear()
+            elif option == "4":
+                if random.randint(1, 100) <= 70:
+                    clear()
+                    draw_line()
+                    print("Has conseguido huir...")
+                    draw_line()
+                    clear()
+                    play = True
+                    break
+                else:
+                    clear()
+                    type_text("\tN O  E S C A P A R A S\n", 0.05)
+                    time.sleep(1)
+                    clear()
+                    pass
             else:
                 print("Opción no válida")
-                time.sleep(1)
-        print("¡Has asignado tus puntos!")
+                input("-> Press Enter <-")
+                clear()
+        except Exception as e:
+            print(f"Error: {e}")
+            input("-> Press Enter <-")
+            clear()
+    if player.health <= 0:
         time.sleep(2)
-        print(f"Lvl: {player.level}")
+        clear()
+        draw_line()
+        type_text("      Has muerto")
+        time.sleep(1)
+        type_text("Volverás al menú principal...")
+        draw_line()
         input("-> Press Enter <-")
         clear()
+        play = False
+        menu = True
+    elif enemy.health <= 0:
+        print(f"¡Has derrotado al {enemy_name}!")
+        time.sleep(1)
+        print(f"Has ganado {enemy.gold} de oro y {enemy.experience} de experiencia.")
+        player.gold += enemy.gold
+        player.experience += enemy.experience
+        try:
+            if random.random() < enemy.drop_rate:
+                # El enemigo ha dejado caer un item
+                dropped_item = enemy.drop_item()
+                if dropped_item != "nothing":
+                    print(f"{enemy_name} ha soltado {dropped_item}.")
+                    player.inventory.append(dropped_item)
+            if random.random() < 0.1:
+                player.potions += 1
+                print("El enemigo ha dejado caer una poción.")
+            # Subir de nivel
+            if player.experience >= player.experience_needed:
+                time.sleep(2)
+                player.level_up()
+                play = True
+            else:
+                time.sleep(2)
+                clear()
+                play = True
+        except Exception as e:
+            print(f"Error: {e}")
+            input("-> Press Enter <-")
+            clear()
 
-# función para moverse por el mapa
-def move():
-    global player, play, player
-    draw_line()
-    print("1.- Norte")
-    print("2.- Sur")
-    print("3.- Este")
-    print("4.- Oeste")
-    print("0.- Volver")
-    draw_line()
-    direction = input("-> ")
-    try:
-        player.move(direction)
-        input("-> Press Enter <-")
-    except Exception as e:
-        print("Opción no válida")
-        print(f"({e})")
-        input("-> Press Enter <-")
-        clear()
-
-# función para tomar una poción
-def drink_potion():
-    global player
-    if player.standing:
-        if player.potions > 0:
-            player.health += 30
-            player.potions -= 1
-            print(f"{player.health}/{player.max_health}")
-            print(f"Te quedan {player.potions} pociones.")
-            input("\n-> Press Enter <-")
-        else:
-            print("No tienes pociones...")
-            input("\n-> Press Enter <-")
 
 # función de play
 def play_game():
     global play, menu, rules, credits, player, autosave
-    if autosave:
-        save() # autosave
-    clear()
-    random_battle()
-    clear()
-    draw_line()
-    print("    Estás en " + biom[map[player.y][player.x]]["t"])
-    draw_line()
-    print(f"HP:{player.health}/{player.max_health} Lvl:{player.level}  Exp:{player.experience}/{player.experience_needed}")
-    draw_line()
-    print("1.- Investigar")
-    print("2.- Moverse")
-    print("3.- Mostrar mapa")
-    print("4.- Mostrar inventario")
-    print("5.- Mostrar stats")
-    if biom[map[player.y][player.x]]["t"] == "Pueblo":
-        print("6.- Comprar")
-    print("9.- Mostrar reglas")
-    print("0.- Guardar y salir")
-    draw_line()
-    option = input("-> ")
-    if option == "1":
-        #investigate() AÑADIIIIIIIIIIIR
-        print("Investigar")
+    try:
+        if autosave:
+            save() # autosave
         clear()
-        play = True
-    elif option == "2":
-        clear()
-        move()
-        play = True
-    elif option == "3":
-        clear()
-        show_map()
-        input("-> Press Enter <-\n")
-        clear()
-        play = True
-    elif option == "4":
-        clear()
-        player.show_inventory()
-        clear()
-        play = True
-    elif option == "5":
-        clear()
+        if player.standing == False:
+            random_battle()
+            clear()
+        player.standing = True
         draw_line()
-        player.show_stats()
+        print("    Estás en " + biom[map[player.y][player.x]]["t"])
         draw_line()
-        time.sleep(1)
-        input("-> Press Enter <-\n")  
-        clear()
-        play = True
-    elif option == "6":
-        #shop() AAAAAAAAÑAAAADIIIIIIIIIIIIIIIIIIIR
-        pass
-    elif option == "9":
-        clear()
-        rules_menu()
-        rules = False
-        play = True
-    elif option == "0":
-        save(player)
-        clear()
-        play = False
-        menu = True
-    else:
-        print("Opción no válida")
+        print(f"HP:{player.health}/{player.max_health} Lvl:{player.level}  Exp:{player.experience}/{player.experience_needed}")
+        draw_line()
+        print("1.- Investigar")
+        print("2.- Moverse")
+        # print("3.- Mostrar mapa") Irá dentro de Moverse
+        print("4.- Mostrar inventario")
+        #print("5.- Mostrar stats") Irá dentro de Mostrar inventario
+        if biom[map[player.y][player.x]]["t"] == "Pueblo":
+            print("8.- Tienda")
+        print("9.- Mostrar reglas")
+        print("0.- Guardar y salir")
+        draw_line()
+        option = input("-> ")
+        if option == "1":
+            #investigate() AÑADIIIIIIIIIIIR
+            print("Investigar")
+            clear()
+            play = True
+        elif option == "2":
+            clear()
+            player.move()
+            play = True
+        elif option == "3":
+            clear()
+            show_map()
+            input("-> Press Enter <-\n")
+            clear()
+            play = True
+        elif option == "4":
+            clear()
+            player.show_inventory()
+            player.standing = True
+            clear()
+            play = True
+        elif option == "5":
+            clear()
+            draw_line()
+            player.show_stats()
+            draw_line()
+            time.sleep(1)
+            input("-> Press Enter <-\n")  
+            clear()
+            play = True
+        elif option == "6":
+            #shop() AAAAAAAAÑAAAADIIIIIIIIIIIIIIIIIIIR
+            pass
+        elif option == "9":
+            clear()
+            rules_menu()
+            rules = False
+            play = True
+        elif option == "0":
+            save(player)
+            clear()
+            play = False
+            menu = True
+        else:
+            print("Opción no válida")
+            time.sleep(1)
+            clear()
+            play = True
+    except Exception as e:
+        print("Error:", str(e))
         time.sleep(1)
         clear()
         play = True
