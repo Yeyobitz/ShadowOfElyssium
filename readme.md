@@ -31,7 +31,7 @@ Esta es la primera versión jugable del juego y tiene mucho espacio para mejoras
 - Añadir sprites ASCII minimalistas para los enemigos
 
 ## Contribuir
-¡Las contribuciones son bienvenidas! Siéntete libre de reportar errores, sugerir características o enviar solicitudes de extracción.
+Ayudar es gratis, vo dale noma :D
 
 ### Créditos
 El juego fue creado por mí, su servidor, Yeyobitz. Puedes encontrar más información sobre el juego en el archivo main.py.
