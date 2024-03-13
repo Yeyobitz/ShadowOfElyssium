@@ -12,11 +12,6 @@ credits = False
 fight = False
 autosave = False
 
-key1 = False
-key2 = False
-key3 = False
-key4 = False
-
 # Personaje
 class Character:
     def __init__(self, name, health, attack, defense, speed, gold, level, experience, x, y, potions, inventory, equipment, experience_needed):
@@ -36,6 +31,8 @@ class Character:
         self.equipment = equipment
         self.experience_needed = experience_needed
         self.standing = True
+        self.keys = 0
+        self.defeated_emissary_coords = []
         
     def show_inventory(self):
         try:
@@ -45,7 +42,7 @@ class Character:
             for i, item in enumerate(self.inventory, start=1):
                 print(f"{i}. {item}  ATK {items[item]['minAtk']}-{items[item]['maxAtk']}" if 'minAtk' in items[item] and 'maxAtk' in items[item] else f"{i}. {item}  DEF {items[item]['def']}" if 'def' in items[item] else f"{i}. {item}")
             draw_line()
-            print(f"Oro: {self.gold} | Pociones: {self.potions}")
+            print(f"Oro: {self.gold} | Pociones: {self.potions} | Orbes: {self.keys}")
             draw_line()
             print("Qué deseas hacer?")
             print("1. Equipar")
@@ -152,6 +149,9 @@ class Character:
                     draw_line()
                     self.y -= 1
                     self.standing = False
+                    if player.standing == False:
+                        random_battle()
+                        clear()
                     time.sleep(1.5)
                 else:
                     draw_big_line()
@@ -164,6 +164,9 @@ class Character:
                     draw_line()
                     self.y += 1
                     self.standing = False
+                    if player.standing == False:
+                        random_battle()
+                        clear()
                     time.sleep(1.5)
                 else:
                     draw_big_line()
@@ -176,6 +179,9 @@ class Character:
                     draw_line()
                     self.x += 1
                     self.standing = False
+                    if player.standing == False:
+                        random_battle()
+                        clear()
                     time.sleep(1.5)
                 else:
                     draw_big_line()
@@ -188,6 +194,9 @@ class Character:
                     draw_line()
                     self.x -= 1
                     self.standing = False
+                    if player.standing == False:
+                        random_battle()
+                        clear()
                     time.sleep(1.5)
                 else:
                     draw_big_line()
@@ -252,7 +261,7 @@ class Character:
                 draw_line()
                 choice = input("Elige una opción: ")
                 if choice == "1":
-                    self.max_health += 5
+                    self.max_health += 20
                     self.health = self.max_health
                     points -= 1
                 elif choice == "2":
@@ -293,7 +302,7 @@ class Character:
 
 
 try:
-    player = Character("", 100, 10, 5, 8, 100, 1, 0, 1, 1, 3, ["",""], ["Espada Corta", "Armadura de Cuero"], 10)
+    player = Character("", 100, 999, 999, 999, 100, 1, 0, 1, 1, 3, [], ["Espada Corta", "Armadura de Cuero"], 10)
 except Exception as e:
     print(f"An error occurred while creating the player: {str(e)}")
 
@@ -310,6 +319,7 @@ class Enemy:
         self.weapon = mobs[name]["weapon"]
         self.armor = mobs[name]["armor"]
         self.drop_rate = mobs[name]["drop_rate"]
+        self.level = 1
             
     def calculate_damage(self):
         try:
@@ -348,27 +358,29 @@ class Enemy:
                 print(f"El {self.name} no ha dejado caer nada.")
         except Exception as e:
             print(f"An error occurred while dropping item: {str(e)}")
-            
+    
+    
     # función para subir del nivel al enemigo dependiendo del nivel del jugador
     # el atk, def, hp y vel del enemigo suben cada uno entre 0 a 2 puntos por cada nivel del jugador al momento de la pelea
     def level_up(self):
         try:
             level_difference = 3*(player.level - 1)
             for _ in range(level_difference):
+                self.level += 1
                 choice = random.randint(0, 3)
                 if choice == 0:
                     self.attack += 1
                 elif choice == 1:
                     self.defense += 1
                 elif choice == 2:
-                    self.health += 5
+                    self.health += 20
                 elif choice == 3:
                     self.speed += 1
         except Exception as e:
             print(f"An error occurred while leveling up the enemy: {str(e)}")
         self.max_health = self.health
-        self.experience += int(self.experience * 0.1 * level_difference)
-        self.gold += int(self.gold * 0.1 * level_difference)
+        self.experience += int(self.experience * 0.2 * level_difference)
+        self.gold += int(self.gold * 0.2 * level_difference)
         
 
 ############################################## Items list ##############################################
@@ -1164,6 +1176,11 @@ mobs = {
         
 }
 
+# función para pelear contra el Emisario del Horizonte Estelar (Semi Jefe final)
+# el Emisario del Horizonte Estelar es el enemigo más fuerte del juego, y es el penúltimo enemigo
+# Aparecerá solamente en las "Eldritch Ruins"
+# Aparecerá 1 sola vez por cada "Eldritch Ruins" que se visite
+# Al derrotarlo soltará una llave que permitirá abrir la puerta que lleva al Jefe Final
 
 # Pesos de los biomas para determinar la probabilidad de encontrar un enemigo
 #                       Sujet-Besti-Espec-Culti-Gargo-Horro-Pesad-Sombra-Culti-Acol-Medium-Palad-Guard-Cazad-Abomi-Avata-Devor-Titan-Engen-Emisa-Jefe-Nada
@@ -1174,10 +1191,10 @@ beach_weight =          [0.00, 0.00, 0.00, 0.05, 0.00, 0.30, 0.20, 0.05, 0.05, 0
 swamp_weight =          [0.00, 0.00, 0.00, 0.00, 0.00, 0.15, 0.05, 0.08, 0.00, 0.00, 0.20, 0.00, 0.05, 0.10, 0.10, 0.05, 0.00, 0.00, 0.00, 0.00, 0.00, 0.22] # YES
 mountains_weight =      [0.00, 0.00, 0.00, 0.00, 0.15, 0.00, 0.00, 0.10, 0.10, 0.10, 0.00, 0.00, 0.00, 0.25, 0.10, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.20] # YES
 tower_weight =          [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.10, 0.10, 0.05, 0.10, 0.00, 0.20, 0.20, 0.10, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.15] # YES
-eldritch_ruins_weight = [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.10, 0.05, 0.00, 0.05, 0.00, 0.00, 0.05, 0.25, 0.10, 0.15, 0.00, 0.00, 0.00, 0.00, 0.25]
-# YES
+eld_ruins_weight_befo = [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 1.00, 0.00, 0.00] # before Emissary
+eld_ruins_weight_aftr = [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.10, 0.05, 0.00, 0.05, 0.00, 0.00, 0.05, 0.25, 0.10, 0.15, 0.00, 0.00, 0.00, 0.00, 0.25] # after Emissary
 eldritch_town_weight =  [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.05, 0.05, 0.00, 0.00, 0.20, 0.20, 0.20, 0.30, 0.00, 0.00, 0.20] # YES
-eldritch_altar_weight = [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 1.00]
+eldritch_altar_weight = [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.20, 0.00, 0.80]
 ########################################################################################################
 
 
@@ -1249,6 +1266,12 @@ txt_intro = """
                        de la sombre de Elyssium?
 """
 
+txt_intro2 = """Despiertas en un pueblo desconocido,
+sin recuerdos de tu pasado.
+
+Deberías investigar un poco
+antes de aventurarte en el mundo..."""
+
 
 #################################################################
 ######################### Funciones #############################
@@ -1273,6 +1296,8 @@ def save(player):
             player.equipment,
             player.experience_needed,
             player.standing,
+            player.keys,
+            player.defeated_emissary_coords,
             map
             ]
     
@@ -1325,6 +1350,8 @@ def load():
             equipment = [item.strip("[]'") for item in lines[12].strip().split(', ')]
             experience_needed = int(lines[13])
             player.standing = bool(lines[14].strip())
+            player.keys = int(lines[15])
+            player.defeated_emissary_coords = [eval(coord) for coord in lines[16].strip().split(', ')]
             
             print(map)
             draw_line()
@@ -1390,14 +1417,11 @@ def type_text(text, delay=0.04):
 # función para mostrar introducción y título del juego
 def intro_and_title():
     clear()
-    draw_tabed_big_line()
-    type_text(txt_intro, 0.02)
-    draw_tabed_big_line()
+    draw_big_line()
+    type_text(txt_intro2, 0.01)
+    draw_big_line()
     time.sleep(1)
     input("\n\t\t\t   -> Press Enter <-")
-    clear()
-    type_text_line(title, 0.1)
-    input("\n\t\t\t-> Press Enter <-")
     clear()
     return
 
@@ -1408,6 +1432,62 @@ def get_village_coordinates():
                 return x, y
     return 0, 0
 
+def get_eldritch_ruins_coordinates():
+    for y, row in enumerate(map):
+        for x, tile in enumerate(row):
+            if tile == "eldritch_ruins":
+                return x, y
+    return 0, 0
+
+def check_if_emissary_is_defeated_in_this_coords():
+    for y, row in enumerate(map):
+        for x, tile in enumerate(row):
+            if tile == "eldritch_ruins":
+                return x, y
+    return 0, 0
+
+def fight_emissary():
+    try:
+        clear()
+        type_text("Una misteriosa figura humanoide se alza frente a ti.", 0.04)
+        time.sleep(0.5)
+        type_text("Se te revela como el Emisario de los Señores Antiguos.", 0.04)
+        time.sleep(0.5)
+        type_text("Su presencia es abrumadora, y sientes que la realidad misma se retuerce a su alrededor.", 0.04)
+        time.sleep(0.5)
+        type_text("Estás seguro de que quieres enfrentarte a él?", 0.04)
+        time.sleep(1)
+        print("\n1. Sí\n0. No")
+        draw_line()
+        time.sleep(1)
+        choice = input("-> ")
+        if choice == "1" or choice.lower() == "si" or choice.lower() == "yes":
+            clear()
+            type_text("Que así sea.",0.02)
+            clear()
+            time.sleep(2)
+            enemy = Enemy("Emisario del Horizonte Estelar")
+            battle_v2(enemy)
+            if player.health > 0:
+                clear()
+                type_text("El Emisario deja caer un misterioso orbe", 0.05)
+                type_text("Al recogerlo sientes estar más cerca de tu destino...", 0.05)
+                type_text("Parece poder insertarse en algún sitio...\n", 0.05)
+                input("-> Press Enter <-")
+                # añade esta coordenada a la lista de coordenadas donde se ha derrotado al Emisario
+                player.keys += 1
+                coords = check_if_emissary_is_defeated_in_this_coords()
+                player.defeated_emissary_coords.append(coords)
+                player.standing = True
+                clear()
+        elif choice == "0" or choice.lower() == "no":
+            type_text("Quizás sea mejor preparase antes...", 0.05)
+            pass
+    except Exception as e:
+        print(f"An error occurred while fighting the Emissary: {str(e)}")
+        input("-> Press Enter <-")
+        clear()
+
 # función que maneja el inicio de un juego nuevo
 def new_game():
     global menu, play, player
@@ -1416,8 +1496,8 @@ def new_game():
     map = generate_rpg_map()
     # Asignamos player.x y player.y a una village
     player.x, player.y = get_village_coordinates()
-    type_text("Escuchas una voz en lo profundo de tu mente...\n", 0.03)
-    type_text("\t R e c u e r d a  t u  n o m b r e .", 0.1)
+    #type_text("Escuchas una voz en lo profundo de tu mente...\n", 0.03)
+    #type_text("\t R e c u e r d a  t u  n o m b r e .", 0.08)
     while True:
         player.name = input("\n-> ")
         if len(player.name) >= 2:
@@ -1425,14 +1505,14 @@ def new_game():
         else:
             print("El nombre debe tener al menos 2 caracteres.\n")
             draw_line()
-    clear()
-    type_text(f"Cierto... Me llamo {player.name}", 0.05)
-    time.sleep(1)
-    type_text("...verdad?", 0.1)
-    time.sleep(2)
-    input("\n\n-> Press Enter <-\n")
-    clear()
-    intro_and_title()
+    #clear()
+    #type_text(f"Cierto... Me llamo {player.name}", 0.05)
+    #time.sleep(1)
+    #type_text("...verdad?", 0.1)
+    #time.sleep(2)
+    #input("\n\n-> Press Enter <-\n")
+    #clear()
+    #intro_and_title()
     clear()
     menu = False
     play = True
@@ -1519,6 +1599,7 @@ def random_battle():
     # Batalla random
     if not player.standing:
         if biom[map[player.y][player.x]]["e"]:
+            clear()
             # Si hay enemigos en el bioma PLANICIE
             if current_tile == "plains":
                 enemy_name = random.choices(enemy_list, weights=plains_weight, k=1)[0]
@@ -1621,23 +1702,42 @@ def random_battle():
                 if enemy_name != "ninguno":
                     enemy = Enemy(enemy_name)
                     draw_big_line()
-                    print(f"¡Te has encontrado con un {enemy_name} en el bosque oscuro!")
+                    print(f"¡Te has encontrado con un {enemy_name} la torre oscura!")
                     draw_big_line()
                     input("\n-> Press Enter <-\n")
                     battle_v2(enemy_name)
                 else:
                     draw_big_line()
-                    print("No te puedes quitar la sensación de unos ojos clavados en ti...")
+                    print("La oscuridad de la torre te llena por dentro...")
                     draw_big_line()
                     input("\n-> Press Enter <-\n")
                     clear()
                     player.standing = True
                     play = True
                     
-            # Si hay enemigos en el bioma RUINAS ELDRITCH
             elif current_tile == "EldRuins":
-                enemy_name = random.choices(enemy_list, weights=eldritch_ruins_weight, k=1)[0]
+                enemy_name = random.choices(enemy_list, weights=eld_ruins_weight_befo, k=1)[0]
                 if enemy_name != "ninguno":
+                    if enemy_name == "Emisario del Horizonte Estelar":
+                        if (player.x, player.y) in player.defeated_emissary_coords:
+                            enemy_name = random.choices(enemy_list, weights=eld_ruins_weight_aftr, k=1)[0]
+                            if enemy_name != "ninguno":
+                                enemy = Enemy(enemy_name)
+                                draw_big_line()
+                                print(f"¡Te has encontrado con un {enemy_name} en las ruinas eldritch!")
+                                draw_big_line()
+                                input("\n-> Press Enter <-\n")
+                                battle_v2(enemy_name)
+                            else:
+                                draw_line()
+                                print("Las ruinas eldritch te hacen sentir pequeño...")
+                                draw_line()
+                                input("\n-> Press Enter <-\n")
+                                clear()
+                                player.standing = True
+                                play = True
+                        else:
+                            fight_emissary()
                     enemy = Enemy(enemy_name)
                     draw_big_line()
                     print(f"¡Te has encontrado con un {enemy_name} en las ruinas eldritch!")
@@ -1666,6 +1766,24 @@ def random_battle():
                 else:
                     draw_line()
                     print("El pantano te hace sentir atrapado...")
+                    draw_line()
+                    input("\n-> Press Enter <-\n")
+                    clear()
+                    player.standing = True
+                    play = True
+            # Si tiene las 4 llaves aparecerá el jefe en EldAltar:
+            if player.inventory.count("Llave") == 4:
+                enemy_name = random.choices(enemy_list, weights=eldritch_altar_weight, k=1)[0]
+                if enemy_name != "ninguno":
+                    enemy = Enemy(enemy_name)
+                    draw_big_line()
+                    print(f"¡Te has encontrado con el jefe final en el altar eldritch!")
+                    draw_big_line()
+                    input("\n-> Press Enter <-\n")
+                    battle_v2(enemy_name)
+                else:
+                    draw_line()
+                    print("El altar eldritch te hace sentir pequeño...")
                     draw_line()
                     input("\n-> Press Enter <-\n")
                     clear()
@@ -1827,7 +1945,7 @@ def battle_v2(enemy_name):
                 player.potions += 1
                 print("El enemigo ha dejado caer una poción.")
             # Subir de nivel
-            if player.experience >= player.experience_needed:
+            while player.experience >= player.experience_needed:
                 time.sleep(2)
                 player.level_up()
                 play = True
@@ -1845,9 +1963,6 @@ def play_game():
     global play, menu, rules, credits, player, autosave
     try:
         save(player) # autosave
-        if player.standing == False:
-            random_battle()
-            clear()
         player.standing = True
         draw_line()
         print("    Estás en " + biom[map[player.y][player.x]]["t"])
@@ -1903,10 +2018,12 @@ def play_game():
         clear()
         play = True
 
-
 #################################################################
 ##################### Programa principal ########################
 #################################################################
+type_text_line(title, 0.1)
+input("\n\t\t\t-> Press Enter <-")
+clear()
 
 while run:
     while menu:
